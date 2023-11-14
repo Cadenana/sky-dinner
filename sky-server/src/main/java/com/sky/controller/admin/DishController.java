@@ -11,9 +11,11 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/dish")
@@ -22,6 +24,8 @@ import java.util.List;
 public class DishController {
 @Autowired
     private DishService dishService;
+@Autowired
+private RedisTemplate redisTemplate;
 @PostMapping
     @ApiOperation("新增菜品")
     public Result save(@RequestBody DishDTO dishDTO)
@@ -42,6 +46,8 @@ return Result.success(pageResult);
 public Result delete(@RequestParam List<Long> ids)
 {
     log.info("菜品批量删除{}",ids);
+    Set keys=redisTemplate.keys("dish_");
+redisTemplate.delete(keys);
     dishService.deleteBatch(ids);
     return Result.success();
 }
@@ -56,8 +62,16 @@ public Result delete(@RequestParam List<Long> ids)
 @ApiOperation("根据id查询菜品")
 public Result<DishVO> getById(@PathVariable Long id)
 {
-  DishVO dish=dishService.getById(id);
-    return Result.success(dish);
+    String key="dish_"+ id;
+    DishVO dishVO =(DishVO) redisTemplate.opsForValue().get(key);
+    if (dishVO!=null)
+    {
+       return Result.success(dishVO);
+   }
+
+     dishVO=dishService.getById(id);
+    redisTemplate.opsForValue().set(key,dishVO);
+    return Result.success(dishVO);
 }
 @PutMapping
     @ApiOperation("修改菜品")

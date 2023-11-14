@@ -7,8 +7,8 @@ sky:
     username: root
     password: 4582872
   alioss:
-    access-key-id: LTAI5t8i6czhWUFzi5RqQN9L
-    access-key-secret: Uq0i4UKI28lui7q3OtVNvaG8y88amx
+    access-key-id: LTAI5tM5CesUA5EZACZ95nJV
+    access-key-secret: zjidekey
     bucket-name: sky-buck
     endpoint: oss-cn-beijing.aliyuncs.com
   redis:

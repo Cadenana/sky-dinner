@@ -10,11 +10,13 @@ import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
+import com.sky.vo.DishVO;
 import com.sky.vo.EmployeeLoginVO;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -33,6 +35,8 @@ public class EmployeeController {
     private EmployeeService employeeService;
     @Autowired
     private JwtProperties jwtProperties;
+    @Autowired
+    private RedisTemplate redisTemplate;
 
     /**
      * 登录
@@ -104,7 +108,14 @@ public Result startOrStop(@PathVariable("status") Integer status,Long id)
 @ApiOperation("根据id查询员工信息")
 public Result<Employee> getById(@PathVariable Long id)
 {
-   Employee employee =employeeService.getById(id);
+    String key="emp_"+ id;
+    Employee employee =(Employee) redisTemplate.opsForValue().get(key);
+    if (employee!=null)
+    {
+        return Result.success(employee);
+    }
+    employee =employeeService.getById(id);
+    redisTemplate.opsForValue().set(key,employee);
     return Result.success(employee);
 }
 @PutMapping
